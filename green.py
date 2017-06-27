@@ -29,8 +29,9 @@ def usage():
 def work_func(img_path, resize_value, compress_level, green_level, save_path):
     green_number = 0.4
     srv_img = Image.open(img_path)
-    if resize_value > (0, 0):
-        srv_img = srv_img.resize(resize_value)
+    resize_value=tuple(eval(resize_value))
+    if min(resize_value) != 0:
+        srv_img = srv_img.resize((resize_value))
     srv_img.save(save_path, quality=compress_level)
     d_img = Image.open(save_path)
     d_img_array = np.array(d_img)
@@ -60,22 +61,23 @@ def work_func(img_path, resize_value, compress_level, green_level, save_path):
 
 
 def main(argv):
+    if os.path.exists(sys.argv[1]):
+        srv_path = sys.argv[1]
+    else:
+        print("MUST GIVE A EXIST FILE!")
+        sys.exit(1)
+
     try:
-        opts, args = getopt.getopt(argv, "hr:c:g:s:", ["resize=", "compress=", "green=", "save="])
+        opts, args = getopt.getopt(sys.argv[2:], "hr:c:g:s:", ["help", "resize=", "compress=", "green=", "save="])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
 
-    if os.path.exists(sys.argv[1]):
-        srv_path = sys.argv[1]
-    else:
-        print("FILE NOT EXIST!")
-        sys.exit(1)
     r_value = default_r_value
     c_level = default_c_level
     g_level = default_g_level
     d_path = './green-' + os.path.basename(srv_path)
-
+    
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
