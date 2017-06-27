@@ -1,84 +1,98 @@
-from PIL import Image
+#!/bin/env python3
+# -*- coding: UTF-8 -*-
+
+import sys
+import os
+import getopt
 import numpy as np
-# from matplotlib import pyplot as plt
+from PIL import Image
 from scipy import misc
 
-img = Image.open('D:/test2.jpg')
-img2_url = 'D:/test31.jpg'
-
-print(img.size)
-print(img.mode)
-print(img.format)
+default_r_value = (0, 0)
+default_c_level = 30
+default_g_level = 20
 
 
-# img.show()
+def usage():
+    print(
+        """
+        Usage: python green.py source_pic [option]
+        -h or --help: show this usage
+        -r or --resize: resize the picture. Default: %s not resize. Format:(h, w) 
+        -c or --compress: compress picture. Default: %d. Format:(0, 100]
+        -g or --green: make picture more green times. Default: %d. Format: [0, oo)
+        -s or --save: location save the work. Default: Script path and named green+filename. Format: Full path.
+        """ % (default_r_value, default_c_level, default_g_level)
+    )
 
-'''
-img = img.convert("L")
-data = img.getdata()
-data = np.matrix(data)
-data = np.reshape(data, img.size)
-new_img = Image.fromarray(data)
+
+def work_func(img_path, resize_value, compress_level, green_level, save_path):
+    green_number = 0.4
+    srv_img = Image.open(img_path)
+    if resize_value > (0, 0):
+        srv_img = srv_img.resize(resize_value)
+    srv_img.save(save_path, quality=compress_level)
+    d_img = Image.open(save_path)
+    d_img_array = np.array(d_img)
+    rows, cols, channels = d_img_array.shape
+
+    for i in range(green_level):
+        for row in range(rows):
+            for col in range(cols):
+
+                r = d_img_array.item(row, col, 0)
+                g = d_img_array.item(row, col, 1)
+                b = d_img_array.item(row, col, 2)
+
+                y = 0.299*r + 0.587*g + 0.114*b
+                u = -0.147*r - 0.289*g + 0.436*b - green_number
+                v = 0.615*r - 0.515*g - 0.100*b - green_number
+
+                r = y + 1.14*v
+                g = y - 0.39*u - 0.58*v
+                b = y + 2.03*u
+
+                d_img_array.itemset((row, col, 0), r)
+                d_img_array.itemset((row, col, 1), g)
+                d_img_array.itemset((row, col, 2), b)
+
+    misc.imsave(save_path, d_img_array)
 
 
-print(new_img.size)
-print(new_img.mode)
-print(new_img.format)
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv, "hr:c:g:s:", ["resize=", "compress=", "green=", "save="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
 
-new_img.show()
+    if os.path.exists(sys.argv[1]):
+        srv_path = sys.argv[1]
+    else:
+        print("FILE NOT EXIST!")
+        sys.exit(1)
+    r_value = default_r_value
+    c_level = default_c_level
+    g_level = default_g_level
+    d_path = './green-' + os.path.basename(srv_path)
 
-new_img = np.array(img)
-'''
-img = img.resize((200, 200))
-for i in range(1):
-    img.save(img2_url, quality=8)
-img2 = Image.open(img2_url)
-new_img = np.array(img2)
-print(img2.size[0]*img2.size[1])
-rows, cols, channels = new_img.shape
-print(rows, cols, channels)
-set_number = 0.4
-set_for = 20
-for i in range(set_for):
-    for r in range(rows):
-        for c in range(cols):
-            # R = new_img.item(r, c, 0)
-            # G = new_img.item(r, c, 1)
-            # B = new_img.item(r, c, 2)
-            #
-            # Y = (77*R + 150*G + 29*B) >> 8
-            # U = (-43*R - 85*G + 128*B) >> 8 - 1
-            # V = (128*R - 107*G - 21*B) >> 8 - 1
-            #
-            # R = (65536*Y + 91881*V) >> 16
-            # G = (65536*Y - 22553*U - 46802*V) >> 16
-            # B = (65536*Y + 116130*U) >> 16
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif opt in ("-r", "--resize"):
+            r_value = arg
+        elif opt in ("-c", "--compress"):
+            c_level = arg
+        elif opt in ("-g", "--green"):
+            g_level = arg
+        elif opt in ("-s", "--save"):
+            d_path = arg
 
-            R = new_img.item(r, c, 0)
-            G = new_img.item(r, c, 1)
-            B = new_img.item(r, c, 2)
+    work_func(srv_path, r_value, c_level, g_level, d_path)
 
-            Y = 0.299*R + 0.587*G + 0.114*B
-            U = -0.147*R - 0.289*G + 0.436*B - set_number
-            V = 0.615*R - 0.515*G - 0.100*B - set_number
-
-            R = Y + 1.14*V
-            G = Y - 0.39*U - 0.58*V
-            B = Y + 2.03*U
-
-            new_img.itemset((r, c, 0), R)
-            new_img.itemset((r, c, 1), G)
-            new_img.itemset((r, c, 2), B)
-'''
-new = np.reshape(new_img, (rows, cols))
-'''
-# plt.imshow(new_img)
-# # plt.show()
-#
-# plt.axis('off')
-# plt.savefig(img2_url)
-# img3 = Image.open(img2_url)
-#
-# img3.crop(((img3.size[0]-img.size[0])/2, (img3.size[1]-img.size[1])/2, img.size[0], img.size[1])).save(img2_url)
-
-misc.imsave(img2_url, new_img)
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        usage()
+        sys.exit()
+    main(sys.argv[1:])
