@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from scipy import misc
 
-default_r_value = (0, 0)
+default_r_value = '0, 0'
 default_c_level = 30
 default_g_level = 20
 
@@ -83,11 +83,11 @@ def main(argv):
             usage()
             sys.exit()
         elif opt in ("-r", "--resize"):
-            r_value = arg
+            r_value = int(arg)
         elif opt in ("-c", "--compress"):
-            c_level = arg
+            c_level = int(arg)
         elif opt in ("-g", "--green"):
-            g_level = arg
+            g_level = int(arg)
         elif opt in ("-s", "--save"):
             d_path = arg
 
