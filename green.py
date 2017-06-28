@@ -83,7 +83,7 @@ def main(argv):
             usage()
             sys.exit()
         elif opt in ("-r", "--resize"):
-            r_value = int(arg)
+            r_value = arg
         elif opt in ("-c", "--compress"):
             c_level = int(arg)
         elif opt in ("-g", "--green"):
